@@ -15,7 +15,7 @@ from torch.autograd import Variable
 from torchvision import transforms as T
 from matplotlib import rcParams
 from sklearn.manifold import TSNE
-from collections import  Counter
+from collections import Counter
 import random
 import math
 
@@ -25,7 +25,7 @@ import numpy as np
 from scipy.stats import chi2
 from matplotlib import patches
 import matplotlib.pyplot as plt
-from numpy.linalg import inv,eig, det,pinv
+from numpy.linalg import inv, eig, det, pinv
 import os
 import warnings
 warnings.filterwarnings('ignore')
@@ -45,17 +45,15 @@ class ContrastiveEncoder(nn.Module):
         x = self.encoder(x)
         return x
 
-def train_dnn(net,temperature,epochs, optimizer,trainloader_SCL):
+def train_dnn(net, temperature, epochs, optimizer, trainloader_SCL):
     net.train()
     criterion = SupConLoss(temperature)
-    #optimizer = optim.Adam(net.parameters(), lr = 0.001)
     training_loss = []
-    singular = 0
     for epoch in tqdm(range(epochs)):
         runningloss = 0
-        for images,labels in trainloader_SCL:
-#        _, intra_class_loss,_ =  range_loss(net.encoder(images[0]),labels)
-            images = torch.cat([images[0], images[1]], dim=0).cuda()
+        for images, labels in trainloader_SCL:
+            # Make sure to use CPU instead of CUDA
+            images = torch.cat([images[0], images[1]], dim=0).to('cpu')  # Use .to('cpu') instead of .cuda()
             bsz = labels.shape[0]
             features = net.encoder(images)
             f1_1, f2_1 = torch.split(features, [bsz, bsz], dim=0)
@@ -67,14 +65,7 @@ def train_dnn(net,temperature,epochs, optimizer,trainloader_SCL):
             loss.backward()
             optimizer.step()
 
-            runningloss += loss.item()/images.shape[0]
+            runningloss += loss.item() / images.shape[0]
         training_loss.append(runningloss)
- 
-    return net, training_loss
-
-
-
-
-
-   
     
+    return net, training_loss

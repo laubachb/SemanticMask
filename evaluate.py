@@ -36,7 +36,7 @@ def get_features(model, dataloader):
     model.eval()
     
     for batch_idx, (img, label) in enumerate(dataloader):
-        img = img.cuda()
+        img = img.to('cpu')
         if batch_idx == 0:
             f= model(img)
             train_feature = f.cpu().detach().numpy()
@@ -64,7 +64,7 @@ def evaluate(net,trainloader,validloader,testloader):
     auroc_max = 0
     with torch.no_grad():         
         for batch_idx, (images, label) in enumerate(validloader):
-            images = images.cuda()
+            images = images.to('cpu')
             if batch_idx == 0:
                 embedding = net(images)
                 embedding = np.array(embedding.cpu())
@@ -79,7 +79,7 @@ def evaluate(net,trainloader,validloader,testloader):
         distances = np.array(distances)
         
         for batch_idx, (images, label) in enumerate(testloader):
-            images = images.cuda()
+            images = images.to('cpu')
             if batch_idx == 0:
                 embedding = net(images)
                 embedding = np.array(embedding.cpu())
@@ -102,7 +102,7 @@ def evaluate(net,trainloader,validloader,testloader):
             #print("percentile:",percentile)
             cutoff = np.percentile(distances,percentile)
             pred = distances_test > cutoff
-            pred = pred.astype(np.int)
+            pred = pred.astype(int)
             for i in labels:
                 y_true.append(i.item())
             for i in pred:

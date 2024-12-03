@@ -27,7 +27,7 @@ class SupConLoss(nn.Module):
         batch_size = features.shape[0]
 #         labels = labels.contiguous().view(-1, 1)
 #         mask = torch.eq(labels, labels.T).float()
-        mask = torch.eye(batch_size, dtype=torch.float32).cuda()
+        mask = torch.eye(batch_size, dtype=torch.float32).to('cpu')
         contrast_count = features.shape[1]
         contrast_feature = torch.cat(torch.unbind(features, dim=1), dim=0)
         if self.contrast_mode == 'one':
@@ -44,9 +44,9 @@ class SupConLoss(nn.Module):
         logits = anchor_dot_contrast - logits_max.detach()
 
         # tile mask
-        mask = mask.repeat(anchor_count, contrast_count).cuda()
+        mask = mask.repeat(anchor_count, contrast_count).to('cpu')
         # mask-out self-contrast cases
-        logits_mask = torch.scatter(torch.ones_like(mask).cuda(), 1, torch.arange(batch_size * anchor_count).view(-1, 1).cuda(), 0)
+        logits_mask = torch.scatter(torch.ones_like(mask).to('cpu'), 1, torch.arange(batch_size * anchor_count).view(-1, 1).to('cpu'), 0)
         mask = mask * logits_mask
 
         # compute log_prob
